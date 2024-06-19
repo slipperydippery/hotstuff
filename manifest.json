@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "phpMyAdmin HotStuff",
+  "version": "1.0",
+  "description": "Adds a hotkey to navigate to phpMyAdmin",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
