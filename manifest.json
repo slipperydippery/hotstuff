@@ -6,7 +6,12 @@
   "permissions": ["activeTab"],
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "matches": [
+        "*://mysql.spend.cloud/index.php*",
+        "*://mysql.dev.spend.cloud/*",
+        "*://*/phpmyadmin/*",
+        "*://*/pma/*"
+      ],
       "js": ["content.js"]
     }
   ]
