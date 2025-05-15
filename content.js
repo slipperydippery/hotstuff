@@ -2,7 +2,7 @@
 const defaultHotkeys = {
     navigateToSql: 'Alt+KeyW',
     editStatementInline: 'Alt+KeyA',
-    navigateDbList: 'Alt+KeyB'  // Changed from Alt+KeyD to Alt+KeyB to avoid conflict with Chrome's address bar shortcut
+    navigateDbList: 'Alt+KeyB'  // Opens the database search modal
 };
 
 let activeHotkeys = { ...defaultHotkeys }; // Will be replaced with saved settings if they exist
@@ -74,25 +74,72 @@ if (document.title.includes('phpMyAdmin')) {
 }
 
 function initializeExtension() {
-    // Inject CSS for focus indication
+    // Inject CSS for focus indication and modal
     const style = document.createElement('style');
     style.textContent = `
         .pma-hotstuff-focused {
             border: 2px solid blue !important; /* !important to help override existing styles */
             box-sizing: border-box;
         }
+        
+        .pma-hotstuff-modal-overlay {
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        .pma-hotstuff-modal-content {
+            animation: slideIn 0.2s ease-out;
+        }
+        
+        .pma-hotstuff-db-item:hover {
+            background-color: #f5f5f5 !important;
+        }
+        
+        .pma-hotstuff-selected {
+            background-color: #f0f7ff;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        kbd {
+            background-color: #f7f7f7;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+            color: #333;
+            display: inline-block;
+            font-size: 11px;
+            line-height: 1;
+            padding: 2px 4px;
+            margin: 0 2px;
+        }
     `;
     document.head.appendChild(style);
 
     window.onload = function() {
         setTimeout(function() {
+            // Check if we're coming from database navigation and need to focus search
+            const shouldFocusSearch = sessionStorage.getItem('pmaHotStuffFocusSearch') === 'true';
+            if (shouldFocusSearch) {
+                // Clear the flag
+                sessionStorage.removeItem('pmaHotStuffFocusSearch');
+            }
+            
             const searchInput = document.querySelector('.database.selected input.searchClause.form-control');
             if (searchInput) {
                 const activeEl = document.activeElement;
 
                 // If an INPUT or TEXTAREA is already focused, and it's not our target searchInput,
+                // and we're not explicitly wanting to focus the search input,
                 // then respect that focus and do nothing.
-                if (activeEl && 
+                if (!shouldFocusSearch && activeEl && 
                     (activeEl.tagName.toUpperCase() === 'INPUT' || activeEl.tagName.toUpperCase() === 'TEXTAREA') && 
                     !activeEl.isSameNode(searchInput)) {
                     return; // Don't change focus
@@ -100,6 +147,14 @@ function initializeExtension() {
                 
                 // Otherwise, focus the searchInput.
                 searchInput.focus();
+                
+                // If we came from database navigation, add a brief highlight to show where the focus is
+                if (shouldFocusSearch) {
+                    searchInput.classList.add('pma-hotstuff-focused');
+                    setTimeout(() => {
+                        searchInput.classList.remove('pma-hotstuff-focused');
+                    }, 1500);
+                }
             } else {
                 // Not finding the search input is a normal condition in many phpMyAdmin pages
                 console.log('phpMyAdmin HotStuff: Database search input not available on this page');
@@ -114,7 +169,7 @@ function initializeExtension() {
         } else if (matchesHotkey(event, activeHotkeys.editStatementInline)) {
             editStatementInline();
         } else if (matchesHotkey(event, activeHotkeys.navigateDbList)) {
-            // New functionality to navigate database list
+            // Open database search modal
             focusDatabaseList();
         } else if (event.code === 'ArrowDown') {
             const validFocusTargets = Array.from(document.querySelectorAll('li.nav_node_table:not(.hidden) a.hover_show_full, li.fast_filters a.hover_show_full, input.searchClause.form-control'));
@@ -138,49 +193,205 @@ function initializeExtension() {
     });
 }
 
-// New function to handle database list navigation
+// New function to handle database list navigation with modal
 function focusDatabaseList() {
-    // Try to find and focus the first database in the list
-    const databaseItems = Array.from(document.querySelectorAll('#pma_navigation_tree li.database a.expander'));
+    // Get all database items from the navigation tree
+    const databaseItems = Array.from(document.querySelectorAll('#pma_navigation_tree li.database > a'));
+    const databases = databaseItems.map(item => {
+        return {
+            name: item.textContent.trim(),
+            url: item.href
+        };
+    });
     
-    // If no databases found, look for database entries without expander (single-item DBs)
-    const allDatabaseItems = databaseItems.length > 0 ? 
-                           databaseItems : 
-                           Array.from(document.querySelectorAll('#pma_navigation_tree li.database > a'));
-    
-    if (allDatabaseItems.length > 0) {
-        // Focus the first database item
-        const firstDatabase = allDatabaseItems[0];
-        firstDatabase.focus();
-        firstDatabase.classList.add('pma-hotstuff-focused');
-        
-        // Show a brief hint message
-        const hint = document.createElement('div');
-        hint.textContent = 'Use arrow keys to navigate, Enter to select';
-        hint.style.position = 'absolute';
-        hint.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        hint.style.color = 'white';
-        hint.style.padding = '8px';
-        hint.style.borderRadius = '4px';
-        hint.style.zIndex = '9999';
-        hint.style.fontSize = '12px';
-        
-        // Position near the focused element
-        const rect = firstDatabase.getBoundingClientRect();
-        hint.style.top = (rect.bottom + 5) + 'px';
-        hint.style.left = rect.left + 'px';
-        
-        document.body.appendChild(hint);
-        
-        // Remove hint after 3 seconds
-        setTimeout(() => {
-            if (hint.parentNode) {
-                hint.parentNode.removeChild(hint);
-            }
-        }, 3000);
-    } else {
+    if (databases.length === 0) {
         console.log('phpMyAdmin HotStuff: No database items found in navigation panel');
+        return;
     }
+    
+    // Create modal overlay
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'pma-hotstuff-modal-overlay';
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'pma-hotstuff-modal-content';
+    
+    // Create header
+    const header = document.createElement('h3');
+    header.textContent = 'Select Database';
+    header.className = 'pma-hotstuff-modal-header';
+    
+    // Create search input
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Type to filter databases...';
+    searchInput.className = 'pma-hotstuff-db-search';
+    
+    // Create database list container
+    const dbListContainer = document.createElement('div');
+    dbListContainer.className = 'pma-hotstuff-db-list';
+    
+    // Create database list
+    const dbList = document.createElement('ul');
+    
+    // Populate database list
+    const dbItems = [];
+    databases.forEach((db, index) => {
+        const li = document.createElement('li');
+        li.textContent = db.name;
+        li.dataset.url = db.url;
+        li.dataset.index = index;
+        li.className = 'pma-hotstuff-db-item';
+        
+        // Highlight first item by default
+        if (index === 0) {
+            li.classList.add('pma-hotstuff-selected');
+        }
+        
+        li.addEventListener('click', () => {
+            navigateToDatabase(db.url);
+        });
+        
+        dbList.appendChild(li);
+        dbItems.push(li);
+    });
+    
+    // Add instructions text
+    const instructions = document.createElement('div');
+    instructions.className = 'pma-hotstuff-instructions';
+    instructions.innerHTML = 'Use <kbd>↑</kbd>/<kbd>↓</kbd> to navigate, <kbd>Enter</kbd> to select, <kbd>Esc</kbd> to cancel';
+    
+    // Assemble modal
+    dbListContainer.appendChild(dbList);
+    modalContent.appendChild(header);
+    modalContent.appendChild(searchInput);
+    modalContent.appendChild(dbListContainer);
+    modalContent.appendChild(instructions);
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
+    
+    // Focus the search input
+    searchInput.focus();
+    
+    let selectedIndex = 0;
+    
+    // Function to update selection
+    const updateSelection = (newIndex) => {
+        // Clear previous selection
+        dbItems.forEach(item => {
+            item.classList.remove('pma-hotstuff-selected');
+        });
+        
+        // Update selected index
+        selectedIndex = newIndex;
+        
+        // Apply new selection
+        const selectedItem = dbItems[selectedIndex];
+        if (selectedItem) {
+            selectedItem.classList.add('pma-hotstuff-selected');
+            
+            // Ensure selected item is visible in the scroll view
+            const container = dbListContainer;
+            const itemTop = selectedItem.offsetTop;
+            const itemBottom = itemTop + selectedItem.offsetHeight;
+            const containerTop = container.scrollTop;
+            const containerBottom = containerTop + container.offsetHeight;
+            
+            if (itemTop < containerTop) {
+                container.scrollTop = itemTop;
+            } else if (itemBottom > containerBottom) {
+                container.scrollTop = itemBottom - container.offsetHeight;
+            }
+        }
+    };
+    
+    // Function to navigate to selected database and focus search input
+    const navigateToDatabase = (url) => {
+        // Store that we're navigating to focus search input
+        sessionStorage.setItem('pmaHotStuffFocusSearch', 'true');
+        window.location.href = url;
+    };
+    
+    // Filter databases based on input
+    const filterDatabases = () => {
+        const query = searchInput.value.toLowerCase();
+        let visibleCount = 0;
+        let firstVisibleIndex = -1;
+        
+        dbItems.forEach((item, index) => {
+            const dbName = item.textContent.toLowerCase();
+            const matches = dbName.includes(query);
+            
+            if (matches) {
+                item.style.display = '';
+                visibleCount++;
+                
+                if (firstVisibleIndex === -1) {
+                    firstVisibleIndex = index;
+                }
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Update selection to first visible item
+        if (visibleCount > 0 && firstVisibleIndex !== -1) {
+            updateSelection(firstVisibleIndex);
+        }
+    };
+    
+    // Handle keydown events for navigation
+    const handleKeydown = (event) => {
+        const visibleItems = Array.from(dbItems).filter(item => item.style.display !== 'none');
+        const currentVisibleIndex = visibleItems.findIndex(item => item.classList.contains('pma-hotstuff-selected'));
+        
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                if (currentVisibleIndex < visibleItems.length - 1) {
+                    updateSelection(parseInt(visibleItems[currentVisibleIndex + 1].dataset.index));
+                }
+                break;
+                
+            case 'ArrowUp':
+                event.preventDefault();
+                if (currentVisibleIndex > 0) {
+                    updateSelection(parseInt(visibleItems[currentVisibleIndex - 1].dataset.index));
+                }
+                break;
+                
+            case 'Enter':
+                event.preventDefault();
+                const selectedItem = dbItems.find(item => item.classList.contains('pma-hotstuff-selected'));
+                if (selectedItem) {
+                    navigateToDatabase(selectedItem.dataset.url);
+                }
+                break;
+                
+            case 'Escape':
+                event.preventDefault();
+                closeModal();
+                break;
+        }
+    };
+    
+    // Close the modal
+    const closeModal = () => {
+        document.body.removeChild(modalOverlay);
+        document.removeEventListener('keydown', handleKeydown);
+    };
+    
+    // Event listeners
+    searchInput.addEventListener('input', filterDatabases);
+    document.addEventListener('keydown', handleKeydown);
+    
+    // Close modal when clicking outside
+    modalOverlay.addEventListener('click', (event) => {
+        if (event.target === modalOverlay) {
+            closeModal();
+        }
+    });
 }
 
 function navigateToSql() {

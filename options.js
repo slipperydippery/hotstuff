@@ -2,7 +2,7 @@
 const defaultHotkeys = {
     navigateToSql: 'Alt+KeyW',
     editStatementInline: 'Alt+KeyA',
-    navigateDbList: 'Alt+KeyB'  // Changed from Alt+KeyD to Alt+KeyB to avoid conflict with Chrome's address bar shortcut
+    navigateDbList: 'Alt+KeyB'  // Opens the database search modal
 };
 
 let currentHotkeys = { ...defaultHotkeys };
@@ -17,7 +17,7 @@ let settingsChanged = false; // Track if settings changed since last save
 // DOM Elements
 const navigateToSqlInput = document.getElementById('navigateToSql');
 const editStatementInlineInput = document.getElementById('editStatementInline');
-const navigateDbListInput = document.getElementById('navigateDbList');  // Added new input element
+const navigateDbListInput = document.getElementById('navigateDbList');  // Input for database search modal hotkey
 const saveButton = document.getElementById('save');
 const statusDiv = document.getElementById('status');
 
@@ -37,7 +37,7 @@ function loadSettings() {
 function updateUI() {
     navigateToSqlInput.value = formatHotkeyForDisplay(currentHotkeys.navigateToSql);
     editStatementInlineInput.value = formatHotkeyForDisplay(currentHotkeys.editStatementInline);
-    navigateDbListInput.value = formatHotkeyForDisplay(currentHotkeys.navigateDbList);  // Added new input update
+    navigateDbListInput.value = formatHotkeyForDisplay(currentHotkeys.navigateDbList);  // Update database search modal hotkey
 }
 
 // Check if settings have changed and update save button accordingly
@@ -287,7 +287,7 @@ editStatementInlineInput.addEventListener('click', () => {
     startListening(editStatementInlineInput);
 });
 
-navigateDbListInput.addEventListener('click', () => {  // Added new event listener
+navigateDbListInput.addEventListener('click', () => {  // Listen for clicks to set database search modal hotkey
     startListening(navigateDbListInput);
 });
 
