@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>phpMyAdmin HotStuff Options</title>
+    <link rel="stylesheet" type="text/css" href="options.css">
+</head>
+<body>
+    <div class="extension-container">
+        <div class="hotkey-option">
+            <label for="navigateToSql">Navigate to SQL:</label>
+            <input type="text" id="navigateToSql" readonly class="hotkey-input">
+        </div>
+
+        <div class="hotkey-option">
+            <label for="editStatementInline">Edit Statement Inline:</label>
+            <input type="text" id="editStatementInline" readonly class="hotkey-input">
+        </div>
+        
+        <div class="hotkey-option">
+            <label for="navigateDbList">Navigate Databases:</label>
+            <input type="text" id="navigateDbList" readonly class="hotkey-input">
+        </div>
+
+        <button id="save">Save Settings</button>
+        <div id="status"></div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

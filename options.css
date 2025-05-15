@@ -1,0 +1,171 @@
+:root {
+  --background: #f3f1e4;
+  --background-darker: #e6e2d5;
+  --greenish: #747539;
+  --elephant: #5c7d72;
+  --blue: #277e9c;
+  --purple: #8a275e;
+  --purple-light: #af4a82;
+  --lipstick-red: #ac3555;
+  --pinkish: #b25174;
+  --dark-blue-green: #274b4b;
+  --skintone: #a75c61;
+  --button-grey: #2f2e29;
+  --button-grey-light: #44433c;
+  --button-grey-very-light: #929182;
+  --yellow: #f7d23b;
+}
+
+body {
+  background-color: var(--background);
+  padding: 0;
+  margin: 8px;
+  font-family: Ubuntu, Roboto, Arial, sans-serif !important;
+  color: var(--button-grey);
+}
+
+.extension-container {
+  padding: 16px;
+}
+
+h1 {
+  color: var(--dark-blue-green);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.hotkey-option {
+  margin-bottom: 15px;
+  padding: 15px;
+  background-color: var(--background-darker);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hotkey-option label {
+  display: inline-block;
+  width: 140px;
+  font-weight: bold;
+  color: var(--button-grey);
+}
+
+.hotkey-input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--button-grey-very-light);
+  border-radius: 8px;
+  background-color: var(--background);
+  font-family: Ubuntu, Roboto, Arial, sans-serif !important;
+  color: var(--button-grey);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.hotkey-input:hover {
+  border-color: var(--blue);
+  background-color: var(--background);
+  color: var(--button-grey);
+  box-shadow: 0 0 5px rgba(39, 126, 156, 0.3);
+}
+
+.hotkey-input.listening {
+  background-color: var(--blue);
+  color: var(--background);
+  border-color: var(--dark-blue-green);
+}
+
+button {
+  display: inline-block;
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+  background-color: var(--background-darker);
+  color: var(--button-grey-light);
+  transition: all 0.2s ease-in-out;
+  font-family: Ubuntu, Roboto, Arial, sans-serif !important;
+}
+
+button:hover {
+  background-color: var(--elephant);
+  color: var(--background);
+}
+
+#setNavigateToSql, #setEditStatementInline {
+  background-color: var(--blue);
+  color: var(--background);
+}
+
+#setNavigateToSql:hover, #setEditStatementInline:hover {
+  background-color: var(--dark-blue-green);
+}
+
+#save {
+  display: block;
+  width: 100%;
+  margin: 20px auto;
+  padding: 12px 30px;
+  background-color: var(--button-grey);
+  color: var(--background);
+  box-sizing: border-box;
+  opacity: 0.5;
+  transition: all 0.2s ease-in-out;
+}
+
+#save:hover:not(:disabled) {
+  background-color: var(--lipstick-red);
+  opacity: 1;
+}
+
+#save.active {
+  opacity: 1;
+}
+
+#save:disabled {
+  cursor: not-allowed;
+  background-color: var(--button-grey-very-light);
+}
+
+#status {
+  text-align: center;
+  margin-top: 15px;
+  font-weight: bold;
+  color: var(--elephant);
+}
+
+/* For popup mode */
+@media (max-width: 500px) {
+  .extension-container {
+    width: 300px;
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .hotkey-option {
+    padding: 10px;
+  }
+  
+  .hotkey-option label {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  
+  .hotkey-input {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  
+  button {
+    padding: 6px 12px;
+  }
+}

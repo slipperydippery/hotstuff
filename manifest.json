@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "phpMyAdmin HotStuff",
   "version": "1.0",
-  "description": "Adds a hotkey to navigate to phpMyAdmin",
-  "permissions": ["activeTab"],
+  "description": "Enhances phpMyAdmin with keyboard hotkeys for faster navigation (SQL page, inline SQL edit, main UI elements via Tab), improved focus management (auto-focus on search, smarter Tab cycle), and clear visual indication of the currently active element. Boost your phpMyAdmin productivity!",
+  "permissions": ["activeTab", "storage"],
   "content_scripts": [
     {
       "matches": [
@@ -14,5 +14,13 @@
       ],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "options.html",
+    "default_title": "phpMyAdmin HotStuff"
+  }
 }
