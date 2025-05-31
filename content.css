@@ -1,0 +1,7 @@
+/* Main styling for phpMyAdmin HotStuff extension */
+
+/* Highlight style for focused elements */
+.pma-hotstuff-focused {
+    border: 2px solid blue !important; /* !important to help override existing styles */
+    box-sizing: border-box;
+}

@@ -1,8 +1,8 @@
 // Default hotkeys - same as in options.js for consistency
 const defaultHotkeys = {
-    navigateToSql: 'Alt+KeyW',
-    editStatementInline: 'Alt+KeyA',
-    navigateDbList: 'Alt+KeyB'  // Opens the database search modal
+    navigateToSql: 'Alt+KeyW',           // Navigate to SQL page
+    editStatementInline: 'Alt+KeyA',      // Edit SQL statement inline
+    navigateDbList: 'Alt+KeyB'           // Opens the database search modal
 };
 
 let activeHotkeys = { ...defaultHotkeys }; // Will be replaced with saved settings if they exist
@@ -74,55 +74,8 @@ if (document.title.includes('phpMyAdmin')) {
 }
 
 function initializeExtension() {
-    // Inject CSS for focus indication and modal
-    const style = document.createElement('style');
-    style.textContent = `
-        .pma-hotstuff-focused {
-            border: 2px solid blue !important; /* !important to help override existing styles */
-            box-sizing: border-box;
-        }
-        
-        .pma-hotstuff-modal-overlay {
-            animation: fadeIn 0.2s ease-out;
-        }
-        
-        .pma-hotstuff-modal-content {
-            animation: slideIn 0.2s ease-out;
-        }
-        
-        .pma-hotstuff-db-item:hover {
-            background-color: #f5f5f5 !important;
-        }
-        
-        .pma-hotstuff-selected {
-            background-color: #f0f7ff;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        kbd {
-            background-color: #f7f7f7;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.2);
-            color: #333;
-            display: inline-block;
-            font-size: 11px;
-            line-height: 1;
-            padding: 2px 4px;
-            margin: 0 2px;
-        }
-    `;
-    document.head.appendChild(style);
-
+    // CSS is now loaded via the manifest.json content_scripts configuration
+    
     window.onload = function() {
         setTimeout(function() {
             // Check if we're coming from database navigation and need to focus search

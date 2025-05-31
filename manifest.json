@@ -13,7 +13,7 @@
         "*://*/pma/*"
       ],
       "js": ["content.js"],
-      "css": ["modal.css"]
+      "css": ["content.css", "modal.css"]
     }
   ],
   "options_ui": {
