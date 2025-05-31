@@ -5,3 +5,24 @@
     border: 2px solid blue !important; /* !important to help override existing styles */
     box-sizing: border-box;
 }
+
+/* Improved styling for selected table rows */
+.table-active,
+tr.marked.table-active {
+    --bs-table-color-state: #2c3e50 !important;
+    --bs-table-bg-state: rgba(52, 152, 219, 0.15) !important;
+    background-color: rgba(52, 152, 219, 0.15) !important;
+    border-left: 3px solid #3498db !important;
+    position: relative;
+}
+
+/* Additional visual enhancement for better clarity */
+tr.marked.table-active td {
+    border-color: rgba(52, 152, 219, 0.3) !important;
+}
+
+/* Hover effect for selected rows */
+tr.marked.table-active:hover {
+    --bs-table-bg-state: rgba(52, 152, 219, 0.25) !important;
+    background-color: rgba(52, 152, 219, 0.25) !important;
+}
